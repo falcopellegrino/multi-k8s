@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1beta1 # dalle note 252
+#apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+    name: ingress-service
+    annotations: # configurazione più di basso livello
+        kubernetes.io/ingress.class: nginx # creiamo un ingress controller basato su nginx project 
+        nginx.ingress.kubernetes.io/use-regex: 'true' # dalle note 252
+        nginx.ingress.kubernetes.io/rewrite-target: /$1 # come deve comportarsi nginx - in questo caso toglie /api in ogni caso dalle richieste in arrivo
+spec:
+    rules:
+        - http:
+            paths:
+              #- path: / # le chiamate con / le mandiamo al client
+              - path: /?(.*) # le chiamate con / le mandiamo al client
+                
+                backend:
+                  serviceName: client-cluster-ip-service
+                  servicePort: 3000
+              #- path: /api/ # le chiamate con /api le mandiamo al server
+              - path: /api/?(.*) # le chiamate con /api le mandiamo al server
+                backend:
+                  serviceName: server-cluster-ip-service
+                  servicePort: 5000

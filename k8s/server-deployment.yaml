@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: server-deployment
+spec:
+    replicas: 3
+    selector:
+        matchLabels:
+            component: server
+    template:
+        metadata:
+            labels:
+                component: server
+        spec:
+            containers:
+                - name: server
+                  image: franco77/multi-server
+                  #image: cygnetops/multi-server-pgfix-5-11 #la mia va in errore - proviamo quella del corso
+                  ports:
+                    - containerPort: 5000
+                  env:
+                    - name: REDIS_HOST # nome del ClusterIP Service che gli serve per connettersi al redis pod
+                      value: redis-cluster-ip-service # il nome del service - fa scopa con redis-cluster-ip-service --> metadata\name
+                    - name: REDIS_PORT # porta mappata nel service redis-cluster-ip-service
+                      value: "6379" # fa scopa con redis-cluster-ip-service --> spec\port\port
+                    - name: PGUSER # user di default
+                      value: postgres
+                    - name: PGHOST  # nome del ClusterIP Service che gli serve per connettersi al postgres pod
+                      value: postgres-cluster-ip-service # il nome del service - fa scopa con postgres-cluster-ip-service.yaml --> metadata\name
+                    - name: PGPORT # porta mappata nel service postgres-cluster-ip-service
+                      value: "5432" # fa scopa con postgres-cluster-ip-service --> spec\port\port
+                    - name: PGDATABASE # database di default
+                      value: postgres
+                    - name: PGPASSWORD # nome della variabile d'ambiente all interno del cluster,
+                                       # non ha a che fare ancora con il collegamento al secret
+                                       # potrebbe essere qualsiasi "MYPASSWORD"
+                                       # siccome multi-server cercherà PGPASSWORD, la impostiamo così
+                      valueFrom:
+                        secretKeyRef:
+                            name: pgpassword # REF_IN_OTHER_CONF
+                            key: PGPASSWORD # key della secret, potrebbero esserci piu' key in una secret

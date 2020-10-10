@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+    name: client-cluster-ip-service
+spec:
+    type: ClusterIP
+    selector:
+        component: web #the name of the object linked to, for which we want preovide accessibility from inside K8s
+    ports:
+        - port: 3000 # exposed outside K8s
+          targetPort: 3000 # opened inside K8s

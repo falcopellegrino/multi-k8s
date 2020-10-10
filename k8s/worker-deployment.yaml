@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: worker-deployment
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            component: worker
+    template:
+        metadata:
+            labels:
+                component: worker
+        spec:
+            containers:
+                - name: worker
+                  image: franco77/multi-worker
+                  env:
+                    - name: REDIS_HOST # nome del ClusterIP Service che gli serve per connettersi al redis pod
+                      value: redis-cluster-ip-service # il nome del service - fa scopa con redis-cluster-ip-service --> metadata\name
+                    - name: REDIS_PORT # porta mappata nel service redis-cluster-ip-service
+                      value: '6379' # fa scopa con redis-cluster-ip-service --> spec\port\port
+                                  
+                  
