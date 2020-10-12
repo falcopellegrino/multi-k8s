@@ -1,34 +1,11 @@
-sudo: required # per usare docker
-
-services:
-  - docker # preinstallare per averlo a disposizione per le build
-
-before_install:
-  - openssl aes-256-cbc -K $encrypted_9f3b5599b056_key -iv $encrypted_9f3b5599b056_iv -in service-account.json.enc -out service-account.json -d
-  # la direction restituita da travis cli quando ho criptato il file di auth service account, generato su GCP per accedere al progetto
-  - curl https://sdk.cloud.google.com | bash > /dev/null
-  #  download | install in the instance a disposizione con travis
-  - source $HOME/google-cloud-sdk/path.bash.inc
-  # default installation path di GC SDK $HOME/google-cloud-sdk
-  #   e indica che ci sarà qualche modifica alla shell di travis ci in questo file path.bash.inc
-  #   e lo applica attraverso il comando source
-  - gcloud components update kubectl
-  # installa kubectl
-  - gcloud auth activate-service-account --key-file service-account.json
-  # auth
-  # come AIM di AWS dove abbiamo creato utente e dato permessi
-  # ma diamo tutto con un file
-
-
-
-
-
-  - docker build -t stephengrider/react-test -f ./client/Dockerfile.dev ./client
-  
-
-
+sudo: required
 language: generic
 
+services:
+  - docker
+
+before_install:
+  - docker build -t stephengrider/react-test -f ./client/Dockerfile.dev ./client
 
 script:
   - docker run stephengrider/react-test npm test -- --coverage
