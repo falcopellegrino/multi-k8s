@@ -3,9 +3,17 @@ sudo: required # per usare docker
 services:
   - docker # preinstallare per averlo a disposizione per le build
 
+env:
+  global:
+    - SHA=$(git rev-parse HEAD) # recupreiamo l id del commit corrente e assegniamo a env var SHA
+    - CLOUDSDK_CORE_DISABLE_PROMPTS=1 # impostazione per GCP e assicurarsi che non viene mostrato alcun prompt che richiede user input
+        # ... gcloud auth activate-service-account ... potrebbe mostrare dei warning tipo "...sicuro di voler..."
+        # lo evitiamo
+
 before_install:
   - openssl aes-256-cbc -K $encrypted_9f3b5599b056_key -iv $encrypted_9f3b5599b056_iv -in service-account.json.enc -out service-account.json -d
   # la direction restituita da travis cli quando ho criptato il file di auth service account, generato su GCP per accedere al progetto
+  # quando viene eseguito prende il file criptato, lo decripta, e lo mette nella root del nostro progetto
   - curl https://sdk.cloud.google.com | bash > /dev/null
   #  download | install in the instance a disposizione con travis
   - source $HOME/google-cloud-sdk/path.bash.inc
@@ -18,42 +26,31 @@ before_install:
   # auth
   # come AIM di AWS dove abbiamo creato utente e dato permessi
   # ma diamo tutto con un file
-
-
-
-
-
-  - docker build -t stephengrider/react-test -f ./client/Dockerfile.dev ./client
-  
-
-
-language: generic
-
+  # quello precedentemente decriptato in openssl...
+  - gcloud config set project multi-k8s-292210
+  - gcloud config set compute/zone us-central1-c
+  # diciamo a GC che progetto e che zona
+  # il nome del progetto è l'id che vedi quando apri il project selector in GC
+  # la zona si recupera in SX - Kubernetes Engine - Location
+  - gcloud container clusters get-credentials multi-cluster
+  # diciamo a che cluster si applicano i comandi kubernetes in SX - Kubernetes Engine - Name
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+  # effettuiamo accesso a docker - settando env variables sulla dashboard di travis
+  - docker build -t franco77/react-test -f ./client/Dockerfile.dev ./client
+  # lanciamo i test, tagghiamo con un tag temporaneo, specifichiamo il file con la path relativa, usiamo il file .dev perchè solo questo ha le dipendenze per i test
+  # alla fine specifichiamo il build context
 
 script:
-  - docker run stephengrider/react-test npm test -- --coverage
-
-after_success:
-  - docker build -t stephengrider/multi-client ./client
-  - docker build -t stephengrider/multi-nginx ./nginx
-  - docker build -t stephengrider/multi-server ./server
-  - docker build -t stephengrider/multi-worker ./worker
-  # Log in to the docker CLI
-  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
-  # Take those images and push them to docker hub
-  - docker push stephengrider/multi-client
-  - docker push stephengrider/multi-nginx
-  - docker push stephengrider/multi-server
-  - docker push stephengrider/multi-worker
+  #- docker run franco77/react-test npm test -- --coverage
+  - docker run -e CI=true franco77/react-test npm test
+  # lanciamo il container con il tag provvisorio
+  # override del comando principale per lanciare il test con npm test
+  # -- --coverage per uscire dalla watch mode, aspetterebbe input utente, in travis deve essere senza interazione utente e uscire alla fine
+  # ... cambiata la precedente come da 281.
 
 deploy:
-  provider: elasticbeanstalk
-  region: us-west-1
-  app: multi-docker
-  env: MultiDocker-env
-  bucket_name: elasticbeanstalk-us-west-1-306476627547
-  bucket_path: docker-multi
+  provider: script
+  script: bash ./deploy.sh
   on:
     branch: master
-  access_key_id: $AWS_ACCESS_KEY
-  secret_access_key: $AWS_SECRET_KEY
+    # facciamo tutto questo solo quando incontriamo push sul branch master!
