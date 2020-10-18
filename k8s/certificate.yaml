@@ -1,0 +1,40 @@
+# descrive i dettagli del certificato che cerchiamo di ottenere
+apiVersion: certmanager.k8s.io/v1alpha1
+kind: Certificate
+# apiVersion descrive un bucket di differenti tipi di oggetto da cui possiamo attingere
+# certificate non è un oggetto fornito da k8s per default, ma qualcosa definito specificatamente da CertManager appena installato nel cluster
+# quindi stiamo dicendo: cerca nel bucket di oggetti di certmanager
+metadata:
+    name: falcopellegrino-it-tls
+    # mettiamo il dominio solo per chiarire per cosa serve questo certificato
+    # aggiungiamo tls solo per chiarire che stiamo chiedendo un certificato di questo tipo
+spec:
+    secretName: falcopellegrino-it
+        # specifica in che secret deve essere salvato il certificato dopo che è stato ottenuto da certmanager
+        # anche quì non creeremo il secret manualmente, viene creato automaticamente dal processo
+    issuerRef:
+        # riferimento all'oggetto issuer che abbiamo creaato attraverso issuer.yaml
+        name: letsencrypt-prod
+            #...
+            #metaname:
+            #    name: letsencrypt-prod
+            #...
+        kind: ClusterIssuer
+            #...
+            #kind: ClusterIssuer
+            #metaname:
+            #...
+    commonName: falcopellegrino.it
+        # il certificato è valido per ogni indirizzo relativo a questo dominio
+    dnsNames:
+        # tutti i domini che devono essere associati al certificato
+        - falcopellegrino.it
+        - www.falcopellegrino.it
+    acme:
+        config:
+            - http01:
+                ingressClass: ngnix
+              domains:
+                # i domini a cui letsencrypt tenterà di collegarsi durante il processo di verifica
+                - falcopellegrino.it
+                - www.falcopellegrino.it
