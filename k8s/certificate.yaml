@@ -35,7 +35,7 @@ spec:
     acme:
         config:
             - http01:
-                ingressClass: ngnix
+                ingressClass: nginx
               domains:
                 # i domini a cui letsencrypt tenterà di collegarsi durante il processo di verifica
                 - falcopellegrino.it
