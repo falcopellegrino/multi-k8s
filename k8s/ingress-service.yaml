@@ -7,9 +7,38 @@ metadata:
         kubernetes.io/ingress.class: nginx # creiamo un ingress controller basato su nginx project 
         nginx.ingress.kubernetes.io/use-regex: 'true' # dalle note 252
         nginx.ingress.kubernetes.io/rewrite-target: /$1 # come deve comportarsi nginx - in questo caso toglie /api in ogni caso dalle richieste in arrivo
+        # NEW aggiungiamo modifiche per HTTPS - informiamo l'ingress service che stiamo usando un certificato di letsencrypt
+        #certmanager.k8s.io/cluster-issuer: 'letsencrypt-prod'
+        # modifica come da 304.
+        cert-manager.io/cluster-issuer: "letsencrypt-prod"
+        # NEW aggiungiamo modifiche per HTTPS - forziamo gli utenti a usare https - gli utenti non andranno più in HTTP
+        ngnix.ingress.kubernetes.io/ssl-redirect: 'true'
 spec:
+    # NEW aggiungiamo modifiche per HTTPS - diciamo a nginx che deve servire traffico HTTPS e da dove deve prendere il certificato
+    tls:
+      - hosts: # NEW aggiungiamo modifiche per HTTPS - serviamo il traffico HTTPS sui seguenti indirizzi
+          - falcopellegrino.it
+          - www.falcopellegrino.it
+        secretName: falcopellegrino-it # NEW aggiungiamo modifiche per HTTPS - il nome del certificato usato, sta in certificate.yaml --> spec: --> secretName: falcopellegrino-it
     rules:
-        - http:
+        # NEW aggiungiamo modifiche per HTTPS
+        - host: falcopellegrino.it # NEW aggiungiamo modifiche per HTTPS - se qualcuno arriva a questo indirizzo, quelle che seguono sono le regole che vogliamo applicare
+          http:
+            paths:
+              #- path: / # le chiamate con / le mandiamo al client
+              - path: /?(.*) # le chiamate con / le mandiamo al client
+                
+                backend:
+                  serviceName: client-cluster-ip-service
+                  servicePort: 3000
+              #- path: /api/ # le chiamate con /api le mandiamo al server
+              - path: /api/?(.*) # le chiamate con /api le mandiamo al server
+                backend:
+                  serviceName: server-cluster-ip-service
+                  servicePort: 5000
+        # dobbiamo ripetere tutta la sezione precedente per l'indirizzo con www
+        - host: www.falcopellegrino.it # NEW aggiungiamo modifiche per HTTPS - se qualcuno arriva a questo indirizzo, quelle che seguono sono le regole che vogliamo applicare
+          http:
             paths:
               #- path: / # le chiamate con / le mandiamo al client
               - path: /?(.*) # le chiamate con / le mandiamo al client
