@@ -10,9 +10,9 @@ metadata:
         # NEW aggiungiamo modifiche per HTTPS - informiamo l'ingress service che stiamo usando un certificato di letsencrypt
         #certmanager.k8s.io/cluster-issuer: 'letsencrypt-prod'
         # modifica come da 304.
-        cert-manager.io/cluster-issuer: "letsencrypt-prod"
+        cert-manager.io/cluster-issuer: 'letsencrypt-prod'
         # NEW aggiungiamo modifiche per HTTPS - forziamo gli utenti a usare https - gli utenti non andranno più in HTTP
-        ngnix.ingress.kubernetes.io/ssl-redirect: 'true'
+        nginx.ingress.kubernetes.io/ssl-redirect: 'true'
 spec:
     # NEW aggiungiamo modifiche per HTTPS - diciamo a nginx che deve servire traffico HTTPS e da dove deve prendere il certificato
     tls:
