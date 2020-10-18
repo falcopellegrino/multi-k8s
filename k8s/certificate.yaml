@@ -1,5 +1,7 @@
 # descrive i dettagli del certificato che cerchiamo di ottenere
-apiVersion: certmanager.k8s.io/v1alpha1
+#apiVersion: certmanager.k8s.io/v1alpha1
+# modifica come da 304.
+apiVersion: cert-manager.io/v1alpha2
 kind: Certificate
 # apiVersion descrive un bucket di differenti tipi di oggetto da cui possiamo attingere
 # certificate non è un oggetto fornito da k8s per default, ma qualcosa definito specificatamente da CertManager appena installato nel cluster

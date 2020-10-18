@@ -1,5 +1,7 @@
 # descrive dove deve andare il CertManager per richiedere il certificato
-apiVersion: certmanager.k8s.io/v1alpha1
+#apiVersion: certmanager.k8s.io/v1alpha1
+# modifica come da 304.
+apiVersion: cert-manager.io/v1alpha2
 # apiVersion descrive un bucket di differenti tipi di oggetto da cui possiamo attingere
 # issuer non è un oggetto fornito da k8s per default, ma qualcosa definito specificatamente da CertManager appena installato nel cluster
 # quindi stiamo dicendo: cerca nel bucket di oggetti di certmanager
@@ -20,12 +22,17 @@ spec:
                 # questo non ha a che fare con la secret dell'oggetto certificate
                 # a un certo punto letsencrypt invierà al nostro cluster kubernetes un secret key che è legata al record relativo a noi un letsencrypt
                 # serve durante il processo di verifica, per rispondere quando letsencrypt chiama la route che esporremo per la verifica
-                # non la useremo mai direttamente, la mettiamo quì e ce ne dimentichiamo
-        http01: {}
-            # dice semplicemente che stiamo utilizzando il processo scelto
-            # ovvero richiesta a letsencrypy
-            # che ci chiama sulla route
-            # a cui noi rispondiamo
-            # per ricevere alla fine il cetificato
-            # --
-            # esiste un altra modalità, tramite dns, ma è più complicata
+                # non la useremo mai direttamente, la mettiamo quì e ce ne dimentichiamo# modifica come da 304.
+            # modifica come da 304.
+            # http01: {}
+            #     # dice semplicemente che stiamo utilizzando il processo scelto
+            #     # ovvero richiesta a letsencrypy
+            #     # che ci chiama sulla route
+            #     # a cui noi rispondiamo
+            #     # per ricevere alla fine il cetificato
+            #     # --
+            #     # esiste un altra modalità, tramite dns, ma è più complicata
+        solvers:
+            - http01:
+                ingress:
+                    class: nginx
